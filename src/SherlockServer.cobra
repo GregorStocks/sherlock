@@ -1,0 +1,26 @@
+@ref "C:\Users\me\code\sherlock\bin\Lidgren.Network.dll"
+
+use Lidgren.Network
+
+class Program
+    def main
+		config = NetPeerConfiguration("MyExampleName")
+		config.port = 14242
+		server = NetServer(config)
+		server.start
+
+		while true
+			msg = server.readMessage
+			if not msg
+				continue
+			print 'got a message'
+			branch msg.messageType
+				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
+					print msg.readString
+					break
+				else
+					print 'Unhandled type: '
+					print msg.messageType
+					print msg.readString
+					break
+			server.recycle(msg)
