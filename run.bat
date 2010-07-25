@@ -1,2 +1,1 @@
-make
-bin/sherlock.exe
+make && bin/sherlock.exe

@@ -1,3 +1,7 @@
+@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.dll"
+@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.Game.dll"
+@ref "C:\Users\me\code\sherlock\lib\Lidgren.Network.dll"
+
 use System
 use System.Collections.Generic
 use Microsoft.Xna.Framework
@@ -9,9 +13,7 @@ use Microsoft.Xna.Framework.Input
 use Microsoft.Xna.Framework.Media
 use Microsoft.Xna.Framework.Net
 use Microsoft.Xna.Framework.Storage
-
-@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.dll"
-@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.Game.dll"
+use Lidgren.Network
 
 class SherlockGame inherits Game
     var graphics as GraphicsDeviceManager
@@ -45,4 +47,8 @@ class SherlockGame inherits Game
 
 class Program
     def main
+		config = NetPeerConfiguration("MyExampleName")
+		config.port = 14242
+		server = NetServer(config)
+		server.start
 		SherlockGame().run
