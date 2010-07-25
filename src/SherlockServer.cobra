@@ -16,11 +16,14 @@ class Program
 			print 'got a message'
 			branch msg.messageType
 				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
-					print msg.readString
-					break
+					# print msg.readString
+					pass
+				on NetIncomingMessageType.Data
+					if msg
+						m = Message.readFromWire(msg)
+						print m
 				else
 					print 'Unhandled type: '
 					print msg.messageType
 					print msg.readString
-					break
 			server.recycle(msg)

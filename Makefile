@@ -3,7 +3,7 @@ default: client
 all: client server
 
 client:
-	cobra -c src/SherlockClient.cobra -out:bin/SherlockClient.exe
+	cobra -c src/SherlockClient.cobra src/Message.cobra -out:bin/SherlockClient.exe -cs
 
 server:
-	cobra -c src/SherlockServer.cobra -out:bin/SherlockServer.exe
+	cobra -c src/SherlockServer.cobra src/Message.cobra -out:bin/SherlockServer.exe -cs

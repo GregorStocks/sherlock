@@ -46,7 +46,8 @@ class SherlockClient
 		client = NetClient(config)
 		client.start
 		client.connect('localhost', 14242)
-		msg = client.createMessage
-		msg.write("Hello!")
+		msg = LoginRequest('poop').writeToWire(client)
+		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+		msg = PoopRequest(31337).writeToWire(client)
 		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 		SherlockGame(client).run
