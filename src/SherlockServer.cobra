@@ -3,27 +3,26 @@
 use Lidgren.Network
 
 class Program
-    def main
+	def main
 		config = NetPeerConfiguration("MyExampleName")
 		config.port = 14242
 		server = NetServer(config)
 		server.start
+		state = State(server)
 
 		while true
 			msg = server.readMessage
 			if not msg
 				continue
-			print 'got a message'
 			branch msg.messageType
 				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
-					# print msg.readString
-					pass
-				on NetIncomingMessageType.Data
-					if msg
-						m = Message.readFromWire(msg)
-						print m
-				else
-					print 'Unhandled type: '
-					print msg.messageType
 					print msg.readString
+				on NetIncomingMessageType.StatusChanged
+					status = msg.readByte
+					reason = msg.readString
+					print '[msg.senderConnection] status: [status] ([reason])'
+				on NetIncomingMessageType.Data
+					m = Message.readFromWire(msg to !)
+					m.execute(server, state)
 			server.recycle(msg)
+

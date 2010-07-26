@@ -1,0 +1,38 @@
+use Lidgren.Network
+
+class MoveMessage inherits Message is abstract
+	var _id as SpriteId?
+	var _x as int
+	var _y as int
+
+	cue init
+		.init(nil, 0, 0)
+	
+	cue init(id as SpriteId, x as int, y as int)
+		base.init
+		_id = id
+		_x = x
+		_y = y
+	
+	def parse(m as NetIncomingMessage) is override
+		_id = SpriteId(m.readVariableInt32)
+		_x = m.readVariableInt32
+		_y = m.readVariableInt32
+
+	def write(m as NetOutgoingMessage) is override
+		m.writeVariableInt32(if(_id, _id.id, 0))
+		m.writeVariableInt32(_x)
+		m.writeVariableInt32(_y)
+
+	def toString as String is override
+		return 'Move [_id.id] to [_x], [_y]'
+
+class MoveRequest inherits MoveMessage has MessageType(3)
+	def execute(peer as NetPeer, s as State) is override
+		print 'a'
+		pass
+
+class MoveCommand inherits MoveMessage has MessageType(4)
+	def execute(peer as NetPeer, s as State) is override
+		print 'b'
+		pass

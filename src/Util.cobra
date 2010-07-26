@@ -1,0 +1,7 @@
+class Util
+	def die(msg as String) as String is shared
+		return .die<of String>(msg)
+
+	def die<of T>(msg as String) as T is shared
+		throw Exception(msg)
+		

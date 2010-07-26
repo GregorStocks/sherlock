@@ -1,0 +1,30 @@
+use Lidgren.Network
+
+class AddMessage inherits Message is abstract
+	var _id as SpriteId?
+
+	cue init
+		.init(nil)
+
+	cue init(id as SpriteId?)
+		base.init
+		_id = id
+
+	def parse(m as NetIncomingMessage) is override
+		_id = SpriteId(m.readVariableInt32)
+
+	def write(m as NetOutgoingMessage) is override
+		m.writeVariableInt32(if(_id, _id.id, 0))
+	
+	def toString as String is override
+		return 'AddRequest [_id.id]'
+
+class AddRequest inherits AddMessage has MessageType(1)
+	def execute(peer as NetPeer, s as State) is override
+		print 'add request'
+		pass
+
+class AddCommand inherits AddMessage has MessageType(2)
+	def execute(peer as NetPeer, s as State) is override
+		print 'add command'
+		pass

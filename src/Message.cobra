@@ -2,10 +2,10 @@ use Lidgren.Network
 use System.Reflection
 
 class MessageTypeAttribute inherits Attribute has AttributeUsage(AttributeTargets.Class)
-	var num as int
-	cue init(num as int)
+	var id as int
+	cue init(id as int)
 		base.init
-		.num = num
+		.id = id
 
 class Message is abstract
 	def readFromWire(m as NetIncomingMessage) as Message is shared
@@ -13,14 +13,12 @@ class Message is abstract
 		test
 			for t in .getMessageTypes.values
 				constructor = t.getConstructor(Type[](0))
-				assert constructor is not nil
+				assert constructor
 		body
 			messageType = m.readVariableInt32
 			t as Type?
 			if .getMessageTypes.tryGetValue(messageType, out t)
-				constructor = t.getConstructor(Type[](0))
-				if constructor is nil
-					throw Exception()
+				constructor = t.getConstructor(Type[](0)) ? Util.die<of ConstructorInfo>('No constructor for [t]')
 				result = constructor.invoke(Type[](0)) to Message
 				result.parse(m)
 				return result
@@ -29,6 +27,8 @@ class Message is abstract
 				throw Exception()
 	
 	def parse(m as NetIncomingMessage) is abstract
+	
+	def execute(peer as NetPeer, s as State) is abstract
 	
 	def writeToWire(peer as NetPeer) as NetOutgoingMessage
 		"""Creates the message, but does not send it. Badly named."""
@@ -39,11 +39,8 @@ class Message is abstract
 			for attr in attrs
 				if attr inherits MessageTypeAttribute
 					a = attr as MessageTypeAttribute
-					id = a.num
-			if id is not nil
-				msg.writeVariableInt32(id)
-			else
-				throw Exception()
+					id = a.id
+			msg.writeVariableInt32(id ? Util.die<of int>('No id found for [.getType]'))
 			.write(msg)
 			return msg
 		else
@@ -61,52 +58,6 @@ class Message is abstract
 			for attr in System.Attribute.getCustomAttributes(t)
 				if attr inherits MessageTypeAttribute
 					a = attr as MessageTypeAttribute
-					assert not _types.containsKey(a.num)
-					_types.add(a.num, t)
+					assert not _types.containsKey(a.id)
+					_types.add(a.id, t)
 		return _types to !
-
-class LoginRequest inherits Message has MessageType(1)
-	var msg as String
-
-	cue init
-		.init('')
-
-	cue init(msg as String)
-		base.init
-		.msg = msg
-
-	def parse(m as NetIncomingMessage) is override
-		s = m.readString
-		if s
-			.msg = s
-		else
-			throw Exception()
-
-	def write(m as NetOutgoingMessage) is override
-		m.write(.msg)
-	
-	def toString as String is override
-		return 'LoginRequest [.msg]'
-
-class PoopRequest inherits Message has MessageType(2)
-	var num as int
-
-	cue init
-		.init(0)
-	
-	cue init(num as int)
-		base.init
-		.num = num
-	
-	def parse(m as NetIncomingMessage) is override
-		num = m.readVariableInt32
-		if num
-			.num = num
-		else
-			throw Exception()
-
-	def write(m as NetOutgoingMessage) is override
-		m.writeVariableInt32(.num)
-
-	def toString as String is override
-		return 'PoopRequest [.num]'

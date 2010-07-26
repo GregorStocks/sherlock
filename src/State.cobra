@@ -1,0 +1,32 @@
+use Lidgren.Network
+
+class State
+	var _sprites as IDictionary<of SpriteId, Sprite>
+	var _server as NetPeer
+
+	cue init(server as NetPeer)
+		base.init
+		_sprites = Dictionary<of SpriteId, Sprite>()
+		_server = server
+	
+	var _spriteIdCounter as int is shared
+	def addSprite(sprite as Sprite)
+		_spriteIdCounter += 1
+		id = SpriteId(_spriteIdCounter)
+		.addSprite(sprite, id)
+
+	def addSprite(sprite as Sprite, id as SpriteId)
+		_sprites.add(id, sprite)
+		msg = AddCommand(id).writeToWire(_server)
+		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+	
+	def moveSprite(id as SpriteId, x as int, y as int)
+		s as Sprite?
+		if _sprites.tryGetValue(id, out s)
+			s.x = x
+			s.y = y
+			msg = MoveCommand(id, s.x, s.y).writeToWire(_server)
+			_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+
+class Client
+	pass

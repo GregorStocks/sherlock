@@ -1,0 +1,7 @@
+src/SherlockClient.cobra
+src/Message.cobra
+src/Util.cobra
+src/Sprite.cobra
+src/Add.cobra
+src/Move.cobra
+src/State.cobra
