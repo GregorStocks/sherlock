@@ -1,13 +1,19 @@
 use Lidgren.Network
+use Microsoft.Xna.Framework.Graphics
+use Microsoft.Xna.Framework
 
-class ClientState inherits State is partial
+class ClientState inherits State
 	pro sprites from var as List<of Sprite>
-	pro spritebatch from var as SpriteBatch
+	var _spriteBatch as SpriteBatch
+	var _graphics as GraphicsDeviceManager
 
-	cue init(server as NetServer, spritebatch as SpriteBatch)
+	cue init(server as NetServer, spriteBatch as SpriteBatch, graphics as GraphicsDeviceManager)
 		base.init(server)
-		sprites = List<of Sprite>()
-		_spritebatch = SpriteBatch
+		.sprites = List<of Sprite>()
+		_spriteBatch = spriteBatch
+		_graphics = graphics
 	
-	def addEntity(id as int, entity as Entity)
-		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch)
+	def addEntity(id as int, entity as Entity) is override
+		base.addEntity(id, entity)
+		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch, id)
+		.sprites.add(sprite)

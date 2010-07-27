@@ -27,6 +27,6 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 
 	def execute(peer as NetPeer, s as ClientState)
 		assert .pos
-		assert .id != 0
-		s.moveEntity(.id, .pos)
+		assert .id <> 0
+		s.moveEntity(.id, .pos to !)
 

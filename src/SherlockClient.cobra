@@ -2,32 +2,35 @@
 @ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.Game.dll"
 @ref "C:\Users\me\code\sherlock\bin\Lidgren.Network.dll"
 
+use Lidgren.Network
 use Microsoft.Xna.Framework
 use Microsoft.Xna.Framework.Graphics
 use Microsoft.Xna.Framework.Input
-use Lidgren.Network
 
 class Sprite
 	var _texture as Texture2D
 	var _batch as SpriteBatch
 	var _e as Entity
+	var _eid as int
 	var _client as NetClient
 
-	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient, entity as Entity)
+	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient, entity as Entity, eid as int)
 		base.init
 		_texture = texture
 		_batch = batch
 		_client = client
 		_e = entity
+		_eid = eid
 	
 	def draw
-		p = Vector2(_entity.pos.x, _entity.pos.y)
+		p = Vector2(_e.pos.x, _e.pos.y)
 		_batch.draw(_texture, p, Color.white)
 	
 	def move(dx as int, dy as int)
-		.e.pos = Vector2.max(Vector2.min(Vector2.add(_pos, Vector2(dx, dy)), Vector2(100, 100)), Vector2(0, 0))
-		msg = MoveRequest(.e.id, .e.pos).writeToWire(client)
-		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+		# todo sanity check
+		_e.pos = Point(_e.pos.x + dx, _e.pos.y + dy)
+		msg = Message.writeToWire(MoveMessage(_eid, _e.pos), _client)
+		_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 	
 class SherlockGame inherits Game
 	var _graphics as GraphicsDeviceManager
@@ -60,13 +63,13 @@ class SherlockGame inherits Game
 				sprite.move(0, 1)
 
 		while true
-			msg = server.readMessage
+			msg = _client.readMessage
 			if not msg
 				break
 			if msg.messageType == NetIncomingMessageType.Data
-				m = Message.readFromWire(msg, state)
-				m.execute(nil, state)
-			server.recycle(msg)
+				m = Message.readCommandFromWire(msg to !)
+				m.execute(_client, _state)
+			_client.recycle(msg)
 
 		base.update(gameTime)
 
@@ -84,6 +87,6 @@ class SherlockClient
 		client = NetClient(config)
 		client.start
 		client.connect('localhost', 14242)
-		msg = AddRequest().writeToWire(client)
+		msg = Message.writeToWire(AddMessage(), client)
 		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 		SherlockGame(client).run

@@ -1,0 +1,2 @@
+class ClientState inherits State
+	pass

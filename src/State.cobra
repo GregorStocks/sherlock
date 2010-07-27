@@ -19,9 +19,6 @@ class State is abstract
 		if .entities.tryGetValue(id, out e)
 			e.pos = pos
 
-class ClientState inherits State
-	pass
-
 class ServerState inherits State
 	# IDs are positive integers. An ID of 0 represents "no ID."
 	shared
