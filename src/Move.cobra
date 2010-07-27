@@ -8,8 +8,8 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 	
 	cue init(id as int, pos as Point?)
 		base.init
-		.id = 0
-		.pos = Point()
+		.id = id
+		.pos = pos
 	
 	def read(m as NetIncomingMessage)
 		.id = Util.readId(m)
@@ -23,9 +23,13 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 		return 'Move [.id] to [.pos]'
 
 	def execute(peer as NetPeer, s as ServerState)
+		print 'moving serverside [.id] to [.pos]'
+		assert .pos
+		assert .id <> 0
 		s.moveEntity(.id, .pos)
 
 	def execute(peer as NetPeer, s as ClientState)
+		print 'moving clientside'
 		assert .pos
 		assert .id <> 0
 		s.moveEntity(.id, .pos to !)

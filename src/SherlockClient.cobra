@@ -36,7 +36,7 @@ class SherlockGame inherits Game
 	var _graphics as GraphicsDeviceManager
 	var _spriteBatch as SpriteBatch?
 	var _client as NetClient
-	var _state as ClientState
+	var _state as ClientState?
 
 	cue init(client as NetClient)
 		base.init
@@ -51,6 +51,7 @@ class SherlockGame inherits Game
 		pass
 
 	def update(gameTime as GameTime?) is override, protected
+		assert _state
 		keys = Keyboard.getState
 		for sprite in _state.sprites
 			if keys.isKeyDown(Keys.Left)
@@ -68,7 +69,7 @@ class SherlockGame inherits Game
 				break
 			if msg.messageType == NetIncomingMessageType.Data
 				m = Message.readCommandFromWire(msg to !)
-				m.execute(_client, _state)
+				m.execute(_client, _state to !)
 			_client.recycle(msg)
 
 		base.update(gameTime)
@@ -87,6 +88,6 @@ class SherlockClient
 		client = NetClient(config)
 		client.start
 		client.connect('localhost', 14242)
-		msg = Message.writeToWire(AddMessage(), client)
+		msg = Message.writeToWire(AddMessage(0, Entity(Point(0, 0))), client)
 		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 		SherlockGame(client).run

@@ -6,14 +6,16 @@ class ClientState inherits State
 	pro sprites from var as List<of Sprite>
 	var _spriteBatch as SpriteBatch
 	var _graphics as GraphicsDeviceManager
+	var _client as NetClient
 
-	cue init(server as NetServer, spriteBatch as SpriteBatch, graphics as GraphicsDeviceManager)
-		base.init(server)
+	cue init(client as NetClient, spriteBatch as SpriteBatch, graphics as GraphicsDeviceManager)
+		base.init
+		_client = client
 		.sprites = List<of Sprite>()
 		_spriteBatch = spriteBatch
 		_graphics = graphics
 	
 	def addEntity(id as int, entity as Entity) is override
 		base.addEntity(id, entity)
-		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch, id)
+		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch, _client, entity, id)
 		.sprites.add(sprite)

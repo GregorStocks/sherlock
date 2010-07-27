@@ -27,6 +27,7 @@ class AddMessage implements IRequest, ICommand has MessageType(1)
 		s.addEntity(.e)
 
 	def execute(peer as NetPeer, s as ClientState)
+		print 'Got an AddMessage, .id is [.id] and .e is [.e]'
 		assert .e
 		assert .id <> 0
 		s.addEntity(.id, .e to !)

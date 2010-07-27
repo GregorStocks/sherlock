@@ -3,13 +3,10 @@ use Lidgren.Network
 class State is abstract
 	# ID -> Entity mapping
 	pro entities from var as IDictionary<of int, Entity>
-	# The server associated with this state, which is either sending or receiving the packets from this.
-	var _server as NetPeer
 
-	cue init(server as NetPeer) is protected
+	cue init is protected
 		base.init
 		.entities = Dictionary<of int, Entity>()
-		_server = server
 	
 	def addEntity(id as int, entity as Entity)
 		.entities.add(id, entity)
@@ -26,9 +23,11 @@ class ServerState inherits State
 	def getNewId as int
 		_idCounter += 1
 		return _idCounter
+	var _server as NetServer
 
 	cue init(server as NetServer)
-		base.init(server)
+		base.init
+		_server = server
 
 	def addEntity(entity as Entity)
 		.addEntity(.getNewId, entity)
