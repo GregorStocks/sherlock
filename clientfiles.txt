@@ -6,3 +6,4 @@ src/Add.cobra
 src/Move.cobra
 src/State.cobra
 src/Point.cobra
+src/ClientState.cobra

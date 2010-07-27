@@ -1,0 +1,13 @@
+use Lidgren.Network
+
+class ClientState inherits State is partial
+	pro sprites from var as List<of Sprite>
+	pro spritebatch from var as SpriteBatch
+
+	cue init(server as NetServer, spritebatch as SpriteBatch)
+		base.init(server)
+		sprites = List<of Sprite>()
+		_spritebatch = SpriteBatch
+	
+	def addEntity(id as int, entity as Entity)
+		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch)

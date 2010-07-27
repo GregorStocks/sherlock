@@ -10,33 +10,30 @@ use Lidgren.Network
 class Sprite
 	var _texture as Texture2D
 	var _batch as SpriteBatch
-	var _pos as Vector2
+	var _e as Entity
 	var _client as NetClient
 
-	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient)
+	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient, entity as Entity)
 		base.init
-		_pos = Vector2(0, 0)
 		_texture = texture
 		_batch = batch
 		_client = client
+		_e = entity
 	
 	def draw
-		_batch.draw(_texture, _pos, Color.white)
+		p = Vector2(_entity.pos.x, _entity.pos.y)
+		_batch.draw(_texture, p, Color.white)
 	
-	def setPos(p as Point)
-		p = Vector2.max(Vector2.min(Vector2.add(_pos, Vector2(dx, dy)), Vector2(100, 100)), Vector2(0, 0))
-		msg = MoveMessage(0, p.x, p.y).writeToWire(_client)
-		_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+	def move(dx as int, dy as int)
+		.e.pos = Vector2.max(Vector2.min(Vector2.add(_pos, Vector2(dx, dy)), Vector2(100, 100)), Vector2(0, 0))
+		msg = MoveRequest(.e.id, .e.pos).writeToWire(client)
+		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 	
-	def setPos(pos as Point)
-		_pos = pos
-
 class SherlockGame inherits Game
 	var _graphics as GraphicsDeviceManager
 	var _spriteBatch as SpriteBatch?
 	var _client as NetClient
-	var _state as 
-	var _sprite as Sprite?
+	var _state as ClientState
 
 	cue init(client as NetClient)
 		base.init
@@ -45,21 +42,22 @@ class SherlockGame inherits Game
 
 	def loadContent is override, protected
 		_spriteBatch = SpriteBatch(_graphics.graphicsDevice)
-		_sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch)
+		_state = ClientState(_client, _spriteBatch, _graphics)
 
 	def unloadContent is override, protected
 		pass
 
 	def update(gameTime as GameTime?) is override, protected
 		keys = Keyboard.getState
-		if keys.isKeyDown(Keys.Left)
-			_sprite.move(-1, 0)
-		if keys.isKeyDown(Keys.Right)
-			_sprite.move(1, 0)
-		if keys.isKeyDown(Keys.Up)
-			_sprite.move(0, -1)
-		if keys.isKeyDown(Keys.Down)
-			_sprite.move(0, 1)
+		for sprite in _state.sprites
+			if keys.isKeyDown(Keys.Left)
+				sprite.move(-1, 0)
+			if keys.isKeyDown(Keys.Right)
+				sprite.move(1, 0)
+			if keys.isKeyDown(Keys.Up)
+				sprite.move(0, -1)
+			if keys.isKeyDown(Keys.Down)
+				sprite.move(0, 1)
 
 		while true
 			msg = server.readMessage
@@ -70,13 +68,13 @@ class SherlockGame inherits Game
 				m.execute(nil, state)
 			server.recycle(msg)
 
-
 		base.update(gameTime)
 
 	def draw(gameTime as GameTime?) is override, protected
 		_graphics.graphicsDevice.clear(Color.cornflowerBlue)
 		_spriteBatch.begin
-		_sprite.draw
+		for sprite in _state.sprites
+			sprite.draw
 		_spriteBatch.end
 		base.draw(gameTime)
 

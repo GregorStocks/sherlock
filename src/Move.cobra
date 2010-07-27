@@ -23,8 +23,10 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 		return 'Move [.id] to [.pos]'
 
 	def execute(peer as NetPeer, s as ServerState)
-		print 'add request'
+		s.moveEntity(.id, .pos)
 
 	def execute(peer as NetPeer, s as ClientState)
-		print 'add command'
+		assert .pos
+		assert .id != 0
+		s.moveEntity(.id, .pos)
 
