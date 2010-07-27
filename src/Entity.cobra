@@ -1,0 +1,15 @@
+use Lidgren.Network
+
+class Entity
+	pro pos from var as Point
+
+	cue init(pos as Point)
+		base.init
+		.pos = pos
+	
+	def read(m as NetIncomingMessage) as Entity is shared
+		pos = Point.read(m)
+		return Entity(pos)
+
+	def write(m as NetOutgoingMessage)
+		.pos.write(m)

@@ -10,32 +10,32 @@ use Lidgren.Network
 class Sprite
 	var _texture as Texture2D
 	var _batch as SpriteBatch
-	var _p as Vector2
+	var _pos as Vector2
 	var _client as NetClient
 
 	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient)
 		base.init
-		_p = Vector2(0, 0)
+		_pos = Vector2(0, 0)
 		_texture = texture
 		_batch = batch
 		_client = client
 	
 	def draw
-		_batch.draw(_texture, _p, Color.white)
+		_batch.draw(_texture, _pos, Color.white)
 	
-	def move(dx as int, dy as int)
-		p = Vector2.max(Vector2.min(Vector2.add(_p, Vector2(dx, dy)), Vector2(100, 100)), Vector2(0, 0))
+	def setPos(p as Point)
+		p = Vector2.max(Vector2.min(Vector2.add(_pos, Vector2(dx, dy)), Vector2(100, 100)), Vector2(0, 0))
 		msg = MoveMessage(0, p.x, p.y).writeToWire(_client)
 		_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 	
-	def moveTo(x, y)
-		_p.x = x
-		_p.y = y
+	def setPos(pos as Point)
+		_pos = pos
 
 class SherlockGame inherits Game
 	var _graphics as GraphicsDeviceManager
 	var _spriteBatch as SpriteBatch?
 	var _client as NetClient
+	var _state as 
 	var _sprite as Sprite?
 
 	cue init(client as NetClient)

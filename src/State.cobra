@@ -1,32 +1,48 @@
 use Lidgren.Network
 
-class State
-	var _sprites as IDictionary<of SpriteId, Sprite>
+class State is abstract
+	# All the entities!
+	var _entities as IDictionary<of int, Entity>
+	# The server associated with this state, which is either sending or receiving the packets from this.
 	var _server as NetPeer
-
-	cue init(server as NetPeer)
+	cue init(server as NetPeer) is protected
 		base.init
-		_sprites = Dictionary<of SpriteId, Sprite>()
+		_entities = Dictionary<of int, Entity>()
 		_server = server
 	
-	var _spriteIdCounter as int is shared
-	def addSprite(sprite as Sprite)
-		_spriteIdCounter += 1
-		id = SpriteId(_spriteIdCounter)
-		.addSprite(sprite, id)
+	def addEntity(id as int, entity as Entity)
+		_entities.add(id, entity)
+	
+	def moveEntity(id as int, pos as Point)
+		e as Entity?
+		if _entities.tryGetValue(id, out e)
+			e.pos = pos
 
-	def addSprite(sprite as Sprite, id as SpriteId)
-		_sprites.add(id, sprite)
-		msg = AddCommand(id).writeToWire(_server)
+class ClientState inherits State
+	cue init(server as NetServer)
+		base.init(server)
+
+class ServerState inherits State
+	# IDs are positive integers. An ID of 0 represents "no ID."
+	shared
+		var _idCounter as int = 0
+	def getNewId as int
+		_idCounter += 1
+		return _idCounter
+
+	cue init(server as NetServer)
+		base.init(server)
+
+	def addEntity(entity as Entity)
+		.addEntity(.getNewId, entity)
+	
+	def addEntity(id as int, entity as Entity)
+		base.addEntity(id, entity)
+		msg = AddCommand(id, entity).writeToWire(_server)
 		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
 	
-	def moveSprite(id as SpriteId, x as int, y as int)
-		s as Sprite?
-		if _sprites.tryGetValue(id, out s)
-			s.x = x
-			s.y = y
-			msg = MoveCommand(id, s.x, s.y).writeToWire(_server)
-			_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+	def moveEntity(id as int, pos as Point) is override
+		base.moveEntity(id, pos)
+		msg = MoveCommand(id, pos).writeToWire(_server)
+		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
 
-class Client
-	pass

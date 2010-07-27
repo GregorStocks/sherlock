@@ -1,30 +1,41 @@
 use Lidgren.Network
 
-class AddMessage inherits Message is abstract
-	var _id as SpriteId?
+class AddData implements MessageData
+	pro id from var as int
+	pro e from var as Entity?
 
 	cue init
-		.init(nil)
+		.init(0, nil)
 
-	cue init(id as SpriteId?)
+	cue init(id as int, e as Entity?)
 		base.init
-		_id = id
+		.id = id
+		.e = e
 
-	def parse(m as NetIncomingMessage) is override
-		_id = SpriteId(m.readVariableInt32)
+	def read(m as NetIncomingMessage)
+		.id = Util.readId(m)
+		.e = Entity.read(m)
 
-	def write(m as NetOutgoingMessage) is override
-		m.writeVariableInt32(if(_id, _id.id, 0))
+	def write(m as NetOutgoingMessage)
+		Util.writeId(m, .id)
+		.e.write(m)
 	
 	def toString as String is override
-		return 'AddRequest [_id.id]'
+		return 'Add [.id] [.e]'
 
-class AddRequest inherits AddMessage has MessageType(1)
-	def execute(peer as NetPeer, s as State) is override
+class AddRequest inherits Request has MessageType(1)
+	cue init
+		base.init(AddData())
+
+	def execute(peer as NetPeer, s as ServerState) is override
 		print 'add request'
-		pass
 
-class AddCommand inherits AddMessage has MessageType(2)
-	def execute(peer as NetPeer, s as State) is override
+class AddCommand inherits Command has MessageType(2)
+	cue init
+		.init(0, nil)
+
+	cue init(id as int, e as Entity?)
+		base.init(AddData(id, e))
+
+	def execute(peer as NetPeer, s as ClientState) is override
 		print 'add command'
-		pass

@@ -1,7 +1,15 @@
+use Lidgren.Network
+
 class Util
 	def die(msg as String) as String is shared
 		return .die<of String>(msg)
 
 	def die<of T>(msg as String) as T is shared
 		throw Exception(msg)
+	
+	def readId(m as NetIncomingMessage) as int is shared
+		return m.readVariableInt32
+
+	def writeId(m as NetOutgoingMessage, id as int) is shared
+		m.writeVariableInt32(id)
 		

@@ -7,8 +7,26 @@ class MessageTypeAttribute inherits Attribute has AttributeUsage(AttributeTarget
 		base.init
 		.id = id
 
+interface MessageData 
+	"""Handles serialization and deserialization of the data it contains."""
+	def read(m as NetIncomingMessage)
+	def write(m as NetOutgoingMessage)
+
 class Message is abstract
-	def readFromWire(m as NetIncomingMessage) as Message is shared
+	var _data as MessageData
+	cue init is private
+		base.init
+
+	cue init(data as MessageData)
+		base.init
+		_data = data
+
+	def read(m as NetIncomingMessage)
+		_data.read(m)
+	def write(m as NetOutgoingMessage)
+		_data.write(m)
+	
+	def readMessageFromWire(m as NetIncomingMessage) as Message is shared
 		"""Parses the given message and returns the result of that parsing."""
 		test
 			for t in .getMessageTypes.values
@@ -20,15 +38,11 @@ class Message is abstract
 			if .getMessageTypes.tryGetValue(messageType, out t)
 				constructor = t.getConstructor(Type[](0)) ? Util.die<of ConstructorInfo>('No constructor for [t]')
 				result = constructor.invoke(Type[](0)) to Message
-				result.parse(m)
+				result.read(m)
 				return result
 			else
 				# TODO: handle this better, don't crash on a mean packet
 				throw Exception()
-	
-	def parse(m as NetIncomingMessage) is abstract
-	
-	def execute(peer as NetPeer, s as State) is abstract
 	
 	def writeToWire(peer as NetPeer) as NetOutgoingMessage
 		"""Creates the message, but does not send it. Badly named."""
@@ -46,8 +60,6 @@ class Message is abstract
 		else
 			throw Exception()
 	
-	def write(m as NetOutgoingMessage) is abstract
-	
 	var _types as IDictionary<of int, Type>? is shared
 	def getMessageTypes as IDictionary<of int, Type> is shared, private
 		"""Returns a messagetypeid->messagetype mapping containing all message types."""
@@ -61,3 +73,24 @@ class Message is abstract
 					assert not _types.containsKey(a.id)
 					_types.add(a.id, t)
 		return _types to !
+
+class Request inherits Message is abstract
+	def execute(peer as NetPeer, s as ServerState) is abstract
+		"""Executes this request on the server receiving it."""
+
+	def readFromWire(m as NetIncomingMessage) as Request is shared
+		msg = Message.readMessageFromWire(m)
+		if msg inherits Request
+			return msg
+		throw Exception('Not a request!')
+
+class Command inherits Message is abstract
+	def execute(peer as NetPeer, s as ClientState) is abstract
+		"""Executes this command on the client receiving it."""
+
+	def readFromWire(m as NetIncomingMessage) as Command is shared
+		msg = Message.readMessageFromWire(m)
+		if msg inherits Command
+			return msg
+		throw Exception('Not a command!')
+

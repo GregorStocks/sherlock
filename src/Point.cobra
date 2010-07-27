@@ -1,0 +1,26 @@
+use Lidgren.Network
+
+class Point
+	"""Immutable point."""
+	get x from var as int
+	get y from var as int
+	
+	cue init
+		.init(0, 0)
+
+	cue init(x as int, y as int)
+		base.init
+		_x = x
+		_y = y
+
+	def read(m as NetIncomingMessage) as Point is shared
+		x = m.readVariableInt32
+		y = m.readVariableInt32
+		return Point(x, y)
+
+	def write(m as NetOutgoingMessage)
+		m.writeVariableInt32(.x)
+		m.writeVariableInt32(.y)
+	
+	def toString as String is override
+		return '([.x] [.y])'

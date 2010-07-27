@@ -2,13 +2,13 @@
 
 use Lidgren.Network
 
-class Program
+class SherlockServer
 	def main
 		config = NetPeerConfiguration("MyExampleName")
 		config.port = 14242
 		server = NetServer(config)
 		server.start
-		state = State(server)
+		state = ServerState(server)
 
 		while true
 			msg = server.readMessage
@@ -22,7 +22,7 @@ class Program
 					reason = msg.readString
 					print '[msg.senderConnection] status: [status] ([reason])'
 				on NetIncomingMessageType.Data
-					m = Message.readFromWire(msg to !)
+					m = Request.readFromWire(msg to !)
 					m.execute(server, state)
 			server.recycle(msg)
 
