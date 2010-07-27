@@ -7,26 +7,20 @@ class MessageTypeAttribute inherits Attribute has AttributeUsage(AttributeTarget
 		base.init
 		.id = id
 
-interface MessageData 
-	"""Handles serialization and deserialization of the data it contains."""
-	def read(m as NetIncomingMessage)
-	def write(m as NetOutgoingMessage)
+class Message
+	def readRequestFromWire(m as NetIncomingMessage) as IRequest is shared
+		msg = .readFromWire(m)
+		if msg inherits IRequest
+			return msg
+		throw Exception('Not a request!')
 
-class Message is abstract
-	var _data as MessageData
-	cue init is private
-		base.init
-
-	cue init(data as MessageData)
-		base.init
-		_data = data
-
-	def read(m as NetIncomingMessage)
-		_data.read(m)
-	def write(m as NetOutgoingMessage)
-		_data.write(m)
+	def readCommandFromWire(m as NetIncomingMessage) as ICommand is shared
+		msg = .readFromWire(m)
+		if msg inherits ICommand
+			return msg
+		throw Exception('Not a command!')
 	
-	def readMessageFromWire(m as NetIncomingMessage) as Message is shared
+	def readFromWire(m as NetIncomingMessage) as IMessage is shared
 		"""Parses the given message and returns the result of that parsing."""
 		test
 			for t in .getMessageTypes.values
@@ -37,25 +31,25 @@ class Message is abstract
 			t as Type?
 			if .getMessageTypes.tryGetValue(messageType, out t)
 				constructor = t.getConstructor(Type[](0)) ? Util.die<of ConstructorInfo>('No constructor for [t]')
-				result = constructor.invoke(Type[](0)) to Message
+				result = constructor.invoke(Type[](0)) to IMessage
 				result.read(m)
 				return result
 			else
 				# TODO: handle this better, don't crash on a mean packet
 				throw Exception()
 	
-	def writeToWire(peer as NetPeer) as NetOutgoingMessage
+	def writeToWire(m as IMessage, peer as NetPeer) as NetOutgoingMessage is shared
 		"""Creates the message, but does not send it. Badly named."""
 		msg = peer.createMessage
 		if msg
-			attrs = System.Attribute.getCustomAttributes(.getType)
+			attrs = System.Attribute.getCustomAttributes(m.getType)
 			id as int?
 			for attr in attrs
 				if attr inherits MessageTypeAttribute
 					a = attr as MessageTypeAttribute
 					id = a.id
-			msg.writeVariableInt32(id ? Util.die<of int>('No id found for [.getType]'))
-			.write(msg)
+			msg.writeVariableInt32(id ? Util.die<of int>('No id found for [m.getType]'))
+			m.write(msg)
 			return msg
 		else
 			throw Exception()
@@ -74,23 +68,15 @@ class Message is abstract
 					_types.add(a.id, t)
 		return _types to !
 
-class Request inherits Message is abstract
-	def execute(peer as NetPeer, s as ServerState) is abstract
+interface IMessage
+	def read(m as NetIncomingMessage)
+	def write(m as NetOutgoingMessage)
+
+interface IRequest inherits IMessage
+	def execute(peer as NetPeer, s as ServerState)
 		"""Executes this request on the server receiving it."""
 
-	def readFromWire(m as NetIncomingMessage) as Request is shared
-		msg = Message.readMessageFromWire(m)
-		if msg inherits Request
-			return msg
-		throw Exception('Not a request!')
-
-class Command inherits Message is abstract
-	def execute(peer as NetPeer, s as ClientState) is abstract
+interface ICommand inherits IMessage
+	def execute(peer as NetPeer, s as ClientState)
 		"""Executes this command on the client receiving it."""
-
-	def readFromWire(m as NetIncomingMessage) as Command is shared
-		msg = Message.readMessageFromWire(m)
-		if msg inherits Command
-			return msg
-		throw Exception('Not a command!')
 

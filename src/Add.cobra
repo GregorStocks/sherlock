@@ -1,6 +1,6 @@
 use Lidgren.Network
 
-class AddData implements MessageData
+class AddMessage implements IRequest, ICommand has MessageType(1)
 	pro id from var as int
 	pro e from var as Entity?
 
@@ -23,19 +23,8 @@ class AddData implements MessageData
 	def toString as String is override
 		return 'Add [.id] [.e]'
 
-class AddRequest inherits Request has MessageType(1)
-	cue init
-		base.init(AddData())
-
-	def execute(peer as NetPeer, s as ServerState) is override
+	def execute(peer as NetPeer, s as ServerState)
 		print 'add request'
 
-class AddCommand inherits Command has MessageType(2)
-	cue init
-		.init(0, nil)
-
-	cue init(id as int, e as Entity?)
-		base.init(AddData(id, e))
-
-	def execute(peer as NetPeer, s as ClientState) is override
+	def execute(peer as NetPeer, s as ClientState)
 		print 'add command'
