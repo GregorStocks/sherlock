@@ -11,10 +11,10 @@ class State is abstract
 	def addEntity(id as int, entity as Entity)
 		.entities.add(id, entity)
 	
-	def moveEntity(id as int, pos as Point)
+	def moveEntity(id as int, src as Point, dest as Point)
 		e as Entity?
-		if .entities.tryGetValue(id, out e)
-			e.pos = pos
+		if .entities.tryGetValue(id, out e) and e.pos.x == src.x and e.pos.y == src.y
+			e.pos = dest
 
 class ServerState inherits State
 	# IDs are positive integers. An ID of 0 represents "no ID."
@@ -37,8 +37,8 @@ class ServerState inherits State
 		msg = Message.writeToWire(AddMessage(id, entity), _server)
 		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
 	
-	def moveEntity(id as int, pos as Point) is override
-		base.moveEntity(id, pos)
-		msg = Message.writeToWire(MoveMessage(id, pos), _server)
+	def moveEntity(id as int, src as Point, dest as Point) is override
+		base.moveEntity(id, src, dest)
+		msg = Message.writeToWire(MoveMessage(id, src, dest), _server)
 		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
 

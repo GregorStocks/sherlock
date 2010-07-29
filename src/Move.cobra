@@ -2,35 +2,41 @@ use Lidgren.Network
 
 class MoveMessage implements IRequest, ICommand has MessageType(2)
 	pro id from var as int
-	pro pos from var as Point?
+	pro src from var as Point?
+	pro dest from var as Point?
 	cue init
-		.init(0, nil)
+		.init(0, nil, nil)
 	
-	cue init(id as int, pos as Point?)
+	cue init(id as int, src as Point?, dest as Point?)
 		base.init
 		.id = id
-		.pos = pos
+		.src = src
+		.dest = dest
 	
 	def read(m as NetIncomingMessage)
 		.id = Util.readId(m)
-		.pos = Point.read(m)
+		.src = Point.read(m)
+		.dest = Point.read(m)
 
 	def write(m as NetOutgoingMessage)
 		Util.writeId(m, .id)
-		.pos.write(m)
+		.src.write(m)
+		.dest.write(m)
 
 	def toString as String is override
-		return 'Move [.id] to [.pos]'
+		return 'Move [.id] from [.src] to [.dest]'
 
 	def execute(peer as NetPeer, s as ServerState)
-		print 'moving serverside [.id] to [.pos]'
-		assert .pos
+		print 'moving serverside [.id] from [.src] to [.dest]'
+		assert .src
+		assert .dest
 		assert .id <> 0
-		s.moveEntity(.id, .pos)
+		s.moveEntity(.id, .src, .dest)
 
 	def execute(peer as NetPeer, s as ClientState)
 		print 'moving clientside'
-		assert .pos
+		assert .src
+		assert .dest
 		assert .id <> 0
-		s.moveEntity(.id, .pos to !)
+		s.moveEntity(.id, .src to !, .dest to !)
 

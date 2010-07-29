@@ -36,7 +36,7 @@ class Message
 				return result
 			else
 				# TODO: handle this better, don't crash on a mean packet
-				throw Exception()
+				throw Exception('Unrecognized packet type: [messageType]')
 	
 	def writeToWire(m as IMessage, peer as NetPeer) as NetOutgoingMessage is shared
 		"""Creates the message, but does not send it. Badly named."""
