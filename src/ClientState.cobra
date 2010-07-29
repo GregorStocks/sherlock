@@ -19,6 +19,6 @@ class ClientState inherits State
 	
 	def addEntity(e as Entity) is override
 		base.addEntity(e)
-		i = Image('data/kitten.jpg')
+		i = Image('data/man.png')
 		s = Sprite(i)
 		.sprites[e.id] = s
