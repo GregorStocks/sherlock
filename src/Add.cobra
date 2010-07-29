@@ -1,33 +1,28 @@
 use Lidgren.Network
 
 class AddMessage implements IRequest, ICommand has MessageType(1)
-	pro id from var as int
 	pro e from var as Entity?
 
 	cue init
-		.init(0, nil)
+		.init(nil)
 
-	cue init(id as int, e as Entity?)
+	cue init(e as Entity?)
 		base.init
-		.id = id
 		.e = e
 
 	def read(m as NetIncomingMessage)
-		.id = Util.readId(m)
 		.e = Entity.read(m)
 
 	def write(m as NetOutgoingMessage)
-		Util.writeId(m, .id)
 		.e.write(m)
 	
 	def toString as String is override
-		return 'Add [.id] [.e]'
+		return 'Add [.e]'
 
 	def execute(peer as NetPeer, s as ServerState)
 		s.addEntity(.e)
 
 	def execute(peer as NetPeer, s as ClientState)
-		print 'Got an AddMessage, .id is [.id] and .e is [.e]'
+		print 'Got an AddMessage, .e is [.e]'
 		assert .e
-		assert .id <> 0
-		s.addEntity(.id, .e to !)
+		s.addEntity(.e to !)

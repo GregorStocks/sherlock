@@ -2,14 +2,21 @@ use Lidgren.Network
 
 class Entity
 	pro pos from var as Point
+	pro id from var as int
 
-	cue init(pos as Point)
+	cue init
+		.init(Point(), 0)
+
+	cue init(pos as Point, id as int)
 		base.init
 		.pos = pos
+		.id = id
 	
 	def read(m as NetIncomingMessage) as Entity is shared
 		pos = Point.read(m)
-		return Entity(pos)
+		id = Util.readId(m)
+		return Entity(pos, id)
 
 	def write(m as NetOutgoingMessage)
 		.pos.write(m)
+		Util.writeId(m, .id)

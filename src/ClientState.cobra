@@ -1,21 +1,18 @@
 use Lidgren.Network
-use Microsoft.Xna.Framework.Graphics
-use Microsoft.Xna.Framework
+use SFML.Graphics
 
 class ClientState inherits State
-	pro sprites from var as List<of Sprite>
-	var _spriteBatch as SpriteBatch
-	var _graphics as GraphicsDeviceManager
+	# entity ID -> Sprite
+	pro sprites from var as IDictionary<of int, Sprite>
 	var _client as NetClient
 
-	cue init(client as NetClient, spriteBatch as SpriteBatch, graphics as GraphicsDeviceManager)
+	cue init(client as NetClient)
 		base.init
 		_client = client
-		.sprites = List<of Sprite>()
-		_spriteBatch = spriteBatch
-		_graphics = graphics
+		.sprites = Dictionary<of int, Sprite>()
 	
-	def addEntity(id as int, entity as Entity) is override
-		base.addEntity(id, entity)
-		sprite = Sprite(Texture2D.fromFile(_graphics.graphicsDevice, "data/kitten.jpg"), _spriteBatch, _client, entity, id)
-		.sprites.add(sprite)
+	def addEntity(e as Entity) is override
+		base.addEntity(e)
+		i = Image('data/kitten.jpg')
+		s = Sprite(i)
+		.sprites[e.id] = s

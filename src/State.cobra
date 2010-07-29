@@ -8,16 +8,17 @@ class State is abstract
 		base.init
 		.entities = Dictionary<of int, Entity>()
 	
-	def addEntity(id as int, entity as Entity)
-		.entities.add(id, entity)
+	def addEntity(e as Entity)
+		.entities.add(e.id, e)
 	
 	def moveEntity(id as int, src as Point, dest as Point)
 		e as Entity?
-		if .entities.tryGetValue(id, out e) and e.pos.x == src.x and e.pos.y == src.y
+		if .entities.tryGetValue(id, out e)
 			e.pos = dest
 
 class ServerState inherits State
 	# IDs are positive integers. An ID of 0 represents "no ID."
+	# Thread-unsafe.
 	shared
 		var _idCounter as int = 0
 	def getNewId as int
@@ -29,12 +30,11 @@ class ServerState inherits State
 		base.init
 		_server = server
 
-	def addEntity(entity as Entity)
-		.addEntity(.getNewId, entity)
-	
-	def addEntity(id as int, entity as Entity)
-		base.addEntity(id, entity)
-		msg = Message.writeToWire(AddMessage(id, entity), _server)
+	def addEntity(e as Entity)
+		if e.id == 0
+			e.id = .getNewId
+		base.addEntity(e)
+		msg = Message.writeToWire(AddMessage(e), _server)
 		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
 	
 	def moveEntity(id as int, src as Point, dest as Point) is override

@@ -15,7 +15,8 @@ class SherlockServer
 			if not msg
 				continue
 			branch msg.messageType
-				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
+				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage _
+						or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
 					print msg.readString
 				on NetIncomingMessageType.StatusChanged
 					status = msg.readByte

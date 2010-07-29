@@ -1,86 +1,77 @@
-@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.dll"
-@ref "C:\Program Files\Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86\Microsoft.Xna.Framework.Game.dll"
-@ref "C:\Users\me\code\sherlock\bin\Lidgren.Network.dll"
+@ref "bin/Lidgren.Network.dll"
+@ref "bin/sfmlnet-graphics.dll"
+@ref "bin/sfmlnet-window.dll"
 
 use Lidgren.Network
-use Microsoft.Xna.Framework
-use Microsoft.Xna.Framework.Graphics
-use Microsoft.Xna.Framework.Input
+use SFML.Window
+use SFML.Graphics
 
-class Sprite
-	var _texture as Texture2D
-	var _batch as SpriteBatch
-	var _e as Entity
-	var _eid as int
+class SherlockGame
 	var _client as NetClient
-
-	cue init(texture as Texture2D, batch as SpriteBatch, client as NetClient, entity as Entity, eid as int)
-		base.init
-		_texture = texture
-		_batch = batch
-		_client = client
-		_e = entity
-		_eid = eid
-	
-	def draw
-		p = Vector2(_e.pos.x, _e.pos.y)
-		_batch.draw(_texture, p, Color.white)
-	
-	def move(dx as int, dy as int)
-		# todo sanity check
-		_e.pos = Point(_e.pos.x + dx, _e.pos.y + dy)
-		msg = Message.writeToWire(MoveMessage(_eid, _e.pos), _client)
-		_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
-	
-class SherlockGame inherits Game
-	var _graphics as GraphicsDeviceManager
-	var _spriteBatch as SpriteBatch?
-	var _client as NetClient
-	var _state as ClientState?
+	var _window as RenderWindow?
+	var _input as Input?
+	var _state as ClientState
 
 	cue init(client as NetClient)
 		base.init
-		_graphics = GraphicsDeviceManager(this)
 		_client = client
+		_state = ClientState(client)
+	
+	def move(dx as int, dy as int)
+		for e in _state.entities.values
+			e.pos = Point(e.pos.x + dx, e.pos.y + dy)
 
-	def loadContent is override, protected
-		_spriteBatch = SpriteBatch(_graphics.graphicsDevice)
-		_state = ClientState(_client, _spriteBatch, _graphics)
-
-	def unloadContent is override, protected
-		pass
-
-	def update(gameTime as GameTime?) is override, protected
-		assert _state
-		keys = Keyboard.getState
-		for sprite in _state.sprites
-			if keys.isKeyDown(Keys.Left)
-				sprite.move(-1, 0)
-			if keys.isKeyDown(Keys.Right)
-				sprite.move(1, 0)
-			if keys.isKeyDown(Keys.Up)
-				sprite.move(0, -1)
-			if keys.isKeyDown(Keys.Down)
-				sprite.move(0, 1)
-
+	def handleInput
+		# Input that we want to handle per-frame rather than as a series of events - mouse position and arrow keys.
+		if _input.isKeyDown(KeyCode.Left)
+			.move(-1, 0)
+		if _input.isKeyDown(KeyCode.Right)
+			.move(1, 0)
+		if _input.isKeyDown(KeyCode.Up)
+			.move(0, -1)
+		if _input.isKeyDown(KeyCode.Down)
+			.move(0, 1)
+	
+	def handleMessages
 		while true
 			msg = _client.readMessage
 			if not msg
 				break
 			if msg.messageType == NetIncomingMessageType.Data
 				m = Message.readCommandFromWire(msg to !)
-				m.execute(_client, _state to !)
+				m.execute(_client, _state)
 			_client.recycle(msg)
+	
+	def draw
+		_window.clear
+		for id, e in _state.entities
+			s = _state.sprites[id]
+			s.position = Vector2(e.pos.x, e.pos.y)
+			_window.draw(s)
+	
+	def onClosed(o as Object, args as EventArgs)
+		_window.close
+	
+	def onKeyPressed(o as Object, args as KeyEventArgs)
+		pass
 
-		base.update(gameTime)
-
-	def draw(gameTime as GameTime?) is override, protected
-		_graphics.graphicsDevice.clear(Color.cornflowerBlue)
-		_spriteBatch.begin
-		for sprite in _state.sprites
-			sprite.draw
-		_spriteBatch.end
-		base.draw(gameTime)
+	def onResized(o as Object, args as SizeEventArgs)
+		pass
+	
+	def run
+		_window = RenderWindow(VideoMode(800, 600, 32), "SFML Graphics")
+		_window.setFramerateLimit(60)
+		_window.clear
+		_input = _window.input
+		listen _window.closed, EventHandler(ref .onClosed)
+		listen _window.keyPressed, EventHandler<of KeyEventArgs>(ref .onKeyPressed)
+		listen _window.resized, EventHandler<of SizeEventArgs>(ref .onResized)
+		while _window.isOpened
+			.handleInput
+			_window.dispatchEvents
+			.handleMessages
+			.draw
+			_window.display
 
 class SherlockClient
 	def main
@@ -88,6 +79,6 @@ class SherlockClient
 		client = NetClient(config)
 		client.start
 		client.connect('localhost', 14242)
-		msg = Message.writeToWire(AddMessage(0, Entity(Point(0, 0))), client)
+		msg = Message.writeToWire(AddMessage(Entity()), client)
 		client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 		SherlockGame(client).run
