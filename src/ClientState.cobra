@@ -1,3 +1,6 @@
+@ref "bin/sfmlnet-graphics.dll"
+@ref "bin/sfmlnet-window.dll"
+
 use Lidgren.Network
 use SFML.Graphics
 
@@ -5,11 +8,14 @@ class ClientState inherits State
 	# entity ID -> Sprite
 	pro sprites from var as IDictionary<of int, Sprite>
 	var _client as NetClient
+	# The ID of the player's entity.
+	pro id from var as int
 
 	cue init(client as NetClient)
 		base.init
 		_client = client
 		.sprites = Dictionary<of int, Sprite>()
+		.id = 0
 	
 	def addEntity(e as Entity) is override
 		base.addEntity(e)

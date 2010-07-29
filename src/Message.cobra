@@ -73,10 +73,10 @@ interface IMessage
 	def write(m as NetOutgoingMessage)
 
 interface IRequest inherits IMessage
-	def execute(peer as NetPeer, s as ServerState)
+	def execute(c as NetConnection, s as ServerState)
 		"""Executes this request on the server receiving it."""
 
 interface ICommand inherits IMessage
-	def execute(peer as NetPeer, s as ClientState)
+	def execute(c as NetConnection, s as ClientState)
 		"""Executes this command on the client receiving it."""
 

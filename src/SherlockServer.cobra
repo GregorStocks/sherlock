@@ -24,6 +24,6 @@ class SherlockServer
 					print '[msg.senderConnection] status: [status] ([reason])'
 				on NetIncomingMessageType.Data
 					m = Message.readRequestFromWire(msg to !)
-					m.execute(server, state)
+					m.execute(msg.senderConnection to !, state)
 			server.recycle(msg)
 

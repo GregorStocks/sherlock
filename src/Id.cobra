@@ -1,0 +1,24 @@
+use Lidgren.Network
+
+class IdMessage implements ICommand has MessageType(3)
+	pro id from var as int
+	cue init
+		.init(0)
+	
+	cue init(id as int)
+		base.init
+		.id = id
+	
+	def read(m as NetIncomingMessage)
+		.id = Util.readId(m)
+
+	def write(m as NetOutgoingMessage)
+		Util.writeId(m, .id)
+
+	def toString as String is override
+		return "You're [.id]"
+
+	def execute(c as NetConnection, s as ClientState)
+		assert .id <> 0
+		s.id = .id
+

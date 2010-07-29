@@ -19,10 +19,10 @@ class AddMessage implements IRequest, ICommand has MessageType(1)
 	def toString as String is override
 		return 'Add [.e]'
 
-	def execute(peer as NetPeer, s as ServerState)
-		s.addEntity(.e)
+	def execute(c as NetConnection, s as ServerState)
+		s.addEntity(.e, c)
 
-	def execute(peer as NetPeer, s as ClientState)
+	def execute(c as NetConnection, s as ClientState)
 		print 'Got an AddMessage, .e is [.e]'
 		assert .e
 		s.addEntity(.e to !)

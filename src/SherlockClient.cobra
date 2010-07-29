@@ -18,8 +18,12 @@ class SherlockGame
 		_state = ClientState(client)
 	
 	def move(dx as int, dy as int)
-		for e in _state.entities.values
-			e.pos = Point(e.pos.x + dx, e.pos.y + dy)
+		for id, e in _state.entities
+			if id == _state.id
+				p = Point(e.pos.x + dx, e.pos.y + dy)
+				msg = Message.writeToWire(MoveMessage(id, e.pos, p), _client)
+				_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+				e.pos = p
 
 	def handleInput
 		# Input that we want to handle per-frame rather than as a series of events - mouse position and arrow keys.
@@ -39,7 +43,7 @@ class SherlockGame
 				break
 			if msg.messageType == NetIncomingMessageType.Data
 				m = Message.readCommandFromWire(msg to !)
-				m.execute(_client, _state)
+				m.execute(msg.senderConnection to !, _state)
 			_client.recycle(msg)
 	
 	def draw

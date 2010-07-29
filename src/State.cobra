@@ -30,12 +30,25 @@ class ServerState inherits State
 		base.init
 		_server = server
 
-	def addEntity(e as Entity)
+	def addEntity(e as Entity, c as NetConnection)
 		if e.id == 0
 			e.id = .getNewId
 		base.addEntity(e)
+
+		# tell new guy about everyone
+		for entity in .entities.values
+			if entity == e
+				continue
+			msg = Message.writeToWire(AddMessage(entity), _server)
+			c.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+
+		# tell everyone about new guy
 		msg = Message.writeToWire(AddMessage(e), _server)
 		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+
+		# tell new guy who he is
+		msg = Message.writeToWire(IdMessage(e.id), _server)
+		c.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 	
 	def moveEntity(id as int, src as Point, dest as Point) is override
 		base.moveEntity(id, src, dest)
