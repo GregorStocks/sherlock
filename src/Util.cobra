@@ -13,3 +13,8 @@ class Util
 	def writeId(m as NetOutgoingMessage, id as int) is shared
 		m.writeVariableInt32(id)
 		
+	def readString(m as NetIncomingMessage) as String is shared
+		return m.readString to !
+
+	def writeString(m as NetOutgoingMessage, str as String) is shared
+		m.write(str)

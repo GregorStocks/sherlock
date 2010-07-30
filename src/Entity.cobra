@@ -3,20 +3,24 @@ use Lidgren.Network
 class Entity
 	pro pos from var as Point
 	pro id from var as int
+	pro spriteloc from var as String
 
 	cue init
-		.init(Point(), 0)
+		.init(Point(), 0, 'data/man.png')
 
-	cue init(pos as Point, id as int)
+	cue init(pos as Point, id as int, spriteloc as String)
 		base.init
 		.pos = pos
 		.id = id
+		.spriteloc = spriteloc
 	
 	def read(m as NetIncomingMessage) as Entity is shared
 		pos = Point.read(m)
 		id = Util.readId(m)
-		return Entity(pos, id)
+		spriteloc = Util.readString(m)
+		return Entity(pos, id, spriteloc)
 
 	def write(m as NetOutgoingMessage)
 		.pos.write(m)
 		Util.writeId(m, .id)
+		Util.writeString(m, .spriteloc)

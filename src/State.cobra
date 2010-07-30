@@ -29,6 +29,8 @@ class ServerState inherits State
 	cue init(server as NetServer)
 		base.init
 		_server = server
+		.addEntity(Entity(Point(1, 1), .getNewId, 'data/man.png'))
+		.addEntity(Entity(Point(-1, -1), .getNewId, 'data/man.png'))
 
 	def addEntity(e as Entity, c as NetConnection)
 		if e.id == 0
