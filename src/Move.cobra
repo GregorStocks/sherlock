@@ -20,7 +20,11 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 
 	def write(m as NetOutgoingMessage)
 		Util.writeId(m, .id)
-		.src.write(m)
+		if .src
+			.src.write(m)
+		else
+			# TODO: make this work better - a 'null location' value
+			Point(0, 0).write(m)
 		.dest.write(m)
 
 	def toString as String is override
@@ -28,14 +32,12 @@ class MoveMessage implements IRequest, ICommand has MessageType(2)
 
 	def execute(c as NetConnection, s as ServerState)
 		print 'moving serverside [.id] from [.src] to [.dest]'
-		assert .src
 		assert .dest
 		assert .id <> 0
 		s.moveEntity(.id, .src, .dest)
 
 	def execute(c as NetConnection, s as ClientState)
 		print 'moving clientside'
-		assert .src
 		assert .dest
 		assert .id <> 0
 		s.moveEntity(.id, .src to !, .dest to !)

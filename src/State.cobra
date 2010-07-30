@@ -11,10 +11,8 @@ class State is abstract
 	def addEntity(e as Entity)
 		.entities.add(e.id, e)
 	
-	def moveEntity(id as int, src as Point, dest as Point)
-		e as Entity?
-		if .entities.tryGetValue(id, out e)
-			e.pos = dest
+	def moveEntity(id as int, src as Point?, dest as Point)
+		.entities[id].pos = dest
 
 class ServerState inherits State
 	# IDs are positive integers. An ID of 0 represents "no ID."
@@ -25,6 +23,8 @@ class ServerState inherits State
 		_idCounter += 1
 		return _idCounter
 	var _server as NetServer
+	# entity ID -> Connection
+	var _connections = Dictionary<of int, NetConnection>()
 
 	cue init(server as NetServer)
 		base.init
@@ -33,25 +33,35 @@ class ServerState inherits State
 	def addEntity(e as Entity, c as NetConnection)
 		if e.id == 0
 			e.id = .getNewId
-		base.addEntity(e)
+
+		_connections.add(e.id, c)
 
 		# tell new guy about everyone
 		for entity in .entities.values
-			if entity == e
-				continue
-			msg = Message.writeToWire(AddMessage(entity), _server)
-			c.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
+				msg = Message.writeToWire(AddMessage(entity), _server)
+				c.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
+
+		base.addEntity(e)
 
 		# tell everyone about new guy
-		msg = Message.writeToWire(AddMessage(e), _server)
-		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+		for i, c in _connections
+			print i
+			entity = .entities[i]
+			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
+				msg = Message.writeToWire(AddMessage(e), _server)
+				_server.sendMessage(msg, c, NetDeliveryMethod.ReliableOrdered, 0)
 
 		# tell new guy who he is
 		msg = Message.writeToWire(IdMessage(e.id), _server)
 		c.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 	
-	def moveEntity(id as int, src as Point, dest as Point) is override
+	def moveEntity(id as int, src as Point?, dest as Point) is override
 		base.moveEntity(id, src, dest)
-		msg = Message.writeToWire(MoveMessage(id, src, dest), _server)
-		_server.sendMessage(msg, _server.connections, NetDeliveryMethod.ReliableOrdered, 0)
+		e = .entities[id]
+		for i, c in _connections
+			entity = .entities[i]
+			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
+				msg = Message.writeToWire(MoveMessage(id, src, dest), _server)
+				_server.sendMessage(msg, c, NetDeliveryMethod.ReliableOrdered, 0)
 

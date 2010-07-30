@@ -11,6 +11,7 @@ class SherlockGame
 	var _window as RenderWindow?
 	var _input as Input?
 	var _state as ClientState
+	var _view as View?
 
 	cue init(client as NetClient)
 		base.init
@@ -51,6 +52,8 @@ class SherlockGame
 			s = _state.sprites[id]
 			s.position = Vector2(e.pos.x * 32, e.pos.y * 32)
 			_window.draw(s)
+			if id == _state.id
+				_view.center = Vector2(e.pos.x * 32, e.pos.y * 32)
 	
 	def onClosed(o as Object, args as EventArgs)
 		_window.close
@@ -59,12 +62,14 @@ class SherlockGame
 		pass
 
 	def onResized(o as Object, args as SizeEventArgs)
-		pass
+		_view.halfSize = Vector2(args.width / 2f32, args.height / 2f32)
 	
 	def run
 		_window = RenderWindow(VideoMode(800, 600, 32), "SFML Graphics")
 		_window.setFramerateLimit(60)
 		_window.clear
+		_view = View(Vector2(0, 0), Vector2(400, 300))
+		_window.currentView = _view
 		_input = _window.input
 		listen _window.closed, EventHandler(ref .onClosed)
 		listen _window.keyPressed, EventHandler<of KeyEventArgs>(ref .onKeyPressed)
