@@ -50,10 +50,14 @@ class SherlockGame
 		_window.clear
 		for id, e in _state.entities
 			s = _state.sprites[id]
-			s.position = Vector2(e.pos.x * 32, e.pos.y * 32)
+			s.position = e.pos.toVector
 			_window.draw(s)
 			if id == _state.id
-				_view.center = Vector2(e.pos.x * 32, e.pos.y * 32)
+				_view.center = e.pos.toVector
+		_window.currentView = _window.defaultView
+		for s in _state.ui
+			_window.draw(s)
+		_window.currentView = _view
 	
 	def onClosed(o as Object, args as EventArgs)
 		_window.close
@@ -75,8 +79,8 @@ class SherlockGame
 		listen _window.keyPressed, EventHandler<of KeyEventArgs>(ref .onKeyPressed)
 		listen _window.resized, EventHandler<of SizeEventArgs>(ref .onResized)
 		while _window.isOpened
-			.handleInput
 			_window.dispatchEvents
+			.handleInput
 			.handleMessages
 			.draw
 			_window.display

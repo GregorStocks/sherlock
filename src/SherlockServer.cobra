@@ -1,8 +1,8 @@
 @ref "bin/Lidgren.Network.dll"
-@ref "bin/IronPython.dll"
+# @ref "bin/IronPython.dll"
 
 use Lidgren.Network
-use IronPython
+# use IronPython
 
 class SherlockServer
 	def main
@@ -12,11 +12,11 @@ class SherlockServer
 		server.start
 		state = ServerState(server)
 
-		sandbox = AppDomain.createDomain("sandbox")
-		engine = IronPython.Hosting.Python.CreateEngine(sandbox)
-		scope = engine.createScope()
-		script = engine.createScriptSourceFromString("print 'hello, world!'", SourceCodeKind.Statements)
-		script.execute(scope)
+		#sandbox = AppDomain.createDomain("sandbox")
+		#engine = IronPython.Hosting.Python.CreateEngine(sandbox)
+		#scope = engine.createScope()
+		#script = engine.createScriptSourceFromString("print 'hello, world!'", SourceCodeKind.Statements)
+		#script.execute(scope)
 
 		while true
 			msg = server.readMessage

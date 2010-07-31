@@ -6,19 +6,24 @@ use SFML.Graphics
 
 class ClientState inherits State
 	# entity ID -> Sprite
-	pro sprites from var as IDictionary<of int, Sprite>
+	pro sprites from var = Dictionary<of int, Sprite>()
+	pro ui from var = List<of Sprite>()
 	var _client as NetClient
 	# The ID of the player's entity.
-	pro id from var as int
+	pro id from var = 0
 
 	cue init(client as NetClient)
 		base.init
 		_client = client
-		.sprites = Dictionary<of int, Sprite>()
-		.id = 0
+		.addUi
 	
 	def addEntity(e as Entity) is override
 		base.addEntity(e)
 		i = Image(e.spriteloc)
 		s = Sprite(i)
 		.sprites[e.id] = s
+	
+	def addUi
+		s = Sprite(Image('data/square.png'))
+		s.position = Vector2(50, 50)
+		.ui.add(s)

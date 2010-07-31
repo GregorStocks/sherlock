@@ -1,4 +1,5 @@
 use Lidgren.Network
+use SFML.Graphics
 
 class Point
 	"""Immutable point."""
@@ -24,3 +25,6 @@ class Point
 	
 	def toString as String is override
 		return '([.x] [.y])'
+
+	def toVector as Vector2
+		return Vector2(.x * 32, .y * 32)
