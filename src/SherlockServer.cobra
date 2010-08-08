@@ -24,16 +24,16 @@ class SherlockServer
 		evidence = Evidence()
 		evidence.addHost(Zone(SecurityZone.Internet))
 
-		csharp'perms = SecurityManager.getStandardSandbox(evidence)'
-		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, "scripts"))
+		perms = PermissionSet(PermissionState.None)
+		perms.addPermission(SecurityPermission(SecurityPermissionFlag.Execution))
+		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, "C:/Users/me/code/sherlock/scripts"))
 
-		sandbox = AppDomain.createDomain("Sandbox", evidence, setup)
+		sandbox = AppDomain.createDomain("Sandbox", evidence, setup, perms)
 
 		engine = IronPython.Hosting.Python.createEngine(sandbox)
 		scope = engine.createScope
 		
-		script = StreamReader('scripts/base.py').readToEnd
-		scriptSource = engine.createScriptSourceFromString(script)
+		scriptSource = engine.createScriptSourceFromFile('scripts/base.py')
 		scriptSource.execute(scope)
 
 		while true
