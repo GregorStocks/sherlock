@@ -3,18 +3,19 @@
 @ref "bin/Microsoft.Scripting.Core.dll"
 
 use IronPython
-use System.Security
-use System.Security.Policy
-use System.Security.Permissions
 use Microsoft.Scripting.Hosting
+use System.Security
+use System.Security.Permissions
+use System.Security.Policy
 
-class Script
+class ScriptEnv
 	var _engine as ScriptEngine
 	var _scope as ScriptScope
 	cue init
-		.init('C:/users/me/code/sherlock/scripts')
+		.init('scripts')
 
 	cue init(scriptDir as String)
+		"""A script. Can only run files in the scriptDir."""
 		base.init
 		setup = AppDomainSetup()
 		setup.applicationBase = AppDomain.currentDomain.baseDirectory
@@ -24,28 +25,53 @@ class Script
 		evidence.addHost(Zone(SecurityZone.Internet))
 
 		perms = PermissionSet(PermissionState.None)
-		perms.addPermission(SecurityPermission(SecurityPermissionFlag(Execution, SerializationFormatter)))
-		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, scriptDir))
+		perms.addPermission(SecurityPermission(SecurityPermissionFlag(Execution, _
+		                                                              SerializationFormatter)))
+		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, _
+		                                     Path.getFullPath(scriptDir)))
 
 		sandbox = AppDomain.createDomain('Sandbox', evidence, setup, perms)
 
 		_engine = IronPython.Hosting.Python.createEngine(sandbox) to !
 		_scope = _engine.createScope to !
+
+		runtime = _engine.runtime
+		runtime.loadAssembly(String.getType.assembly)
+		runtime.loadAssembly(Uri.getType.assembly)
 	
+	class Five has Serializable
+		def getFive as int
+			return 5
+
 	def executeFile(filename as String)
+		"""Loads the given file and executes it."""
 		test
-			script = Script('C:/users/me/code/sherlock/test/scripts')
+			script = ScriptEnv('test/scripts')
 			script.executeFile('test/scripts/nop.py')
 			expect SecurityException, script.executeFile('scripts/base.py')
-		# Func<int, bool> IsOdd = scope.GetVariable<Func<int, bool>>('isodd');
+			script.setVariable('c', Five())
+			assert script.eval<of int>("c.GetFive()") == 5
 		body
 			_engine.createScriptSourceFromFile(filename).execute(_scope)
 
 	def executeString(str as String)
+		"""Executes the given string."""
 		_engine.createScriptSourceFromString(str).execute(_scope)
 		
+	def setVariable(name as String, object as Object)
+		"""
+		Adds the given object to the script's scope with the given name. Remember that Cobra
+		internally mangles all names from lowerCamelCase to UpperCamelCase, so all the members of
+		the object will be named differently in Python than in Cobra.
+		"""
+		_scope.setVariable(name, object)
+
 	def getVariable<of T>(name as String) as T
+		"""Returns the variable with the given name in the script's scope."""
 		return _scope.getVariable<of T>(name)
 
-	#def getFunc<of T>(name as String) as Func<of T>
-		#return .getVariable<of Func<of T>>(name)
+	def eval<of T>(name as String) as T
+		"""Calls the function. No args allowed!!!"""
+		return _engine.execute<of T>(name, _scope)
+
+

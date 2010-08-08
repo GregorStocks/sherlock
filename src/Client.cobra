@@ -26,7 +26,8 @@ class SherlockGame
 				_client.sendMessage(msg, NetDeliveryMethod.ReliableOrdered)
 
 	def handleInput
-		# Input that we want to handle per-frame rather than as a series of events - mouse position and arrow keys.
+		# Input that we want to handle per-frame rather than as a series of events - mouse position
+		# and arrow keys.
 		if _input.isKeyDown(KeyCode.Left)
 			.move(-1, 0)
 		if _input.isKeyDown(KeyCode.Right)

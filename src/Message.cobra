@@ -30,7 +30,8 @@ class Message
 			messageType = m.readVariableInt32
 			t as Type?
 			if .getMessageTypes.tryGetValue(messageType, out t)
-				constructor = t.getConstructor(Type[](0)) ? Util.die<of ConstructorInfo>('No constructor for [t]')
+				constructor = t.getConstructor(Type[](0)) ? Util.die<of ConstructorInfo>( _
+					'No constructor for [t]')
 				result = constructor.invoke(Type[](0)) to IMessage
 				result.read(m)
 				return result

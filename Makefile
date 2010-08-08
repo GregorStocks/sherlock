@@ -2,17 +2,19 @@ default: client
 
 all: client server
 
+# Use -ert to avoid security issues, since Cobra.Lang.dll doesn't allow partially trusted callers.
+# Compiling our own is probably not a good solution in the long term.
 client:
-	cobra -c -files:clientfiles.txt -out:bin/SherlockClient.exe -cin
+	cobra -c -files:clientfiles.txt -out:bin/SherlockClient.exe -cs:all -ert -cin
 
 server:
-	cobra -c -files:serverfiles.txt -out:bin/SherlockServer.exe -cin
+	cobra -c -files:serverfiles.txt -out:bin/SherlockServer.exe -cs:all -ert -cin
 
 server-test:
-	cobra -test -files:serverfiles.txt
+	cobra -test -files:serverfiles.txt -cs:all -ert
 
 client-test:
-	cobra -test -files:clientfiles.txt
+	cobra -test -files:clientfiles.txt -cs:all -ert
 
 clean:
 	rm bin/*.exe

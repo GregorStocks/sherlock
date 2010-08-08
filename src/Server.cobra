@@ -1,6 +1,10 @@
 @ref "bin/Lidgren.Network.dll"
 
 use Lidgren.Network
+use System.Security
+
+assembly
+	has AllowPartiallyTrustedCallers
 
 class SherlockServer
 	def main
@@ -10,7 +14,7 @@ class SherlockServer
 		server.start
 		state = ServerState(server)
 
-		script = Script()
+		script = ScriptEnv()
 		script.executeFile('scripts/base.py')
 		script.executeString("print 'pre-poop'")
 		script.executeString("Item().poop()")
@@ -22,8 +26,10 @@ class SherlockServer
 			if not msg
 				continue
 			branch msg.messageType
-				on NetIncomingMessageType.VerboseDebugMessage or NetIncomingMessageType.DebugMessage _
-						or NetIncomingMessageType.WarningMessage or NetIncomingMessageType.ErrorMessage
+				on NetIncomingMessageType.VerboseDebugMessage or _
+				   NetIncomingMessageType.DebugMessage or _
+				   NetIncomingMessageType.WarningMessage or _
+				   NetIncomingMessageType.ErrorMessage
 					print msg.readString
 				on NetIncomingMessageType.StatusChanged
 					status = msg.readByte
