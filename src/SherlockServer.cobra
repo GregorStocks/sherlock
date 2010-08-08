@@ -1,13 +1,6 @@
 @ref "bin/Lidgren.Network.dll"
-@ref "bin/IronPython.dll"
-@ref "bin/Microsoft.Scripting.dll"
-@ref "bin/Microsoft.Scripting.Core.dll"
 
 use Lidgren.Network
-use IronPython
-use System.Security
-use System.Security.Policy
-use System.Security.Permissions
 
 class SherlockServer
 	def main
@@ -17,28 +10,12 @@ class SherlockServer
 		server.start
 		state = ServerState(server)
 
-		setup = AppDomainSetup()
-		setup.applicationBase = AppDomain.currentDomain.baseDirectory
-		setup.applicationName = "Testing"
-
-		evidence = Evidence()
-		evidence.addHost(Zone(SecurityZone.Internet))
-
-		perms = PermissionSet(PermissionState.None)
-		perms.addPermission(SecurityPermission(SecurityPermissionFlag.Execution))
-		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, "C:/Users/me/code/sherlock/scripts"))
-
-		sandbox = AppDomain.createDomain("Sandbox", evidence, setup, perms)
-
-		engine = IronPython.Hosting.Python.createEngine(sandbox)
-		scope = engine.createScope
-		
-		scriptSource = engine.createScriptSourceFromFile('scripts/base.py')
-		scriptSource.execute(scope)
-		print "OK"
-		s = engine.createScriptSourceFromString("Item().poop()")
-		s.execute(scope)
-		s.execute(scope)
+		script = Script()
+		script.executeFile('scripts/base.py')
+		script.executeString("print 'pre-poop'")
+		script.executeString("Item().poop()")
+		script.executeString("Item().poop()")
+		script.executeString("print 'post-poop'")
 
 		while true
 			msg = server.readMessage

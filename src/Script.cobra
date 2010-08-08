@@ -1,0 +1,37 @@
+@ref "bin/IronPython.dll"
+@ref "bin/Microsoft.Scripting.dll"
+@ref "bin/Microsoft.Scripting.Core.dll"
+
+use IronPython
+use System.Security
+use System.Security.Policy
+use System.Security.Permissions
+use Microsoft.Scripting.Hosting
+
+class Script
+	var _engine as ScriptEngine
+	var _scope as ScriptScope
+	cue init
+		base.init
+		setup = AppDomainSetup()
+		setup.applicationBase = AppDomain.currentDomain.baseDirectory
+		setup.applicationName = "Testing"
+
+		evidence = Evidence()
+		evidence.addHost(Zone(SecurityZone.Internet))
+
+		perms = PermissionSet(PermissionState.None)
+		perms.addPermission(SecurityPermission(SecurityPermissionFlag.Execution))
+		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, "C:/Users/me/code/sherlock/scripts"))
+
+		sandbox = AppDomain.createDomain("Sandbox", evidence, setup, perms)
+
+		_engine = IronPython.Hosting.Python.createEngine(sandbox) to !
+		_scope = _engine.createScope to !
+	
+	def executeFile(filename as String)
+		_engine.createScriptSourceFromFile(filename).execute(_scope)
+
+	def executeString(str as String)
+		_engine.createScriptSourceFromString(str).execute(_scope)
+		
