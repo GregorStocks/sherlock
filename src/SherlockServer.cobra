@@ -1,8 +1,13 @@
 @ref "bin/Lidgren.Network.dll"
-# @ref "bin/IronPython.dll"
+@ref "bin/IronPython.dll"
+@ref "bin/Microsoft.Scripting.dll"
+@ref "bin/Microsoft.Scripting.Core.dll"
 
 use Lidgren.Network
-# use IronPython
+use IronPython
+use System.Security
+use System.Security.Policy
+use System.Security.Permissions
 
 class SherlockServer
 	def main
@@ -12,11 +17,24 @@ class SherlockServer
 		server.start
 		state = ServerState(server)
 
-		#sandbox = AppDomain.createDomain("sandbox")
-		#engine = IronPython.Hosting.Python.CreateEngine(sandbox)
-		#scope = engine.createScope()
-		#script = engine.createScriptSourceFromString("print 'hello, world!'", SourceCodeKind.Statements)
-		#script.execute(scope)
+		setup = AppDomainSetup()
+		setup.applicationBase = AppDomain.currentDomain.baseDirectory
+		setup.applicationName = "Testing"
+
+		evidence = Evidence()
+		evidence.addHost(Zone(SecurityZone.Internet))
+
+		csharp'perms = SecurityManager.getStandardSandbox(evidence)'
+		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, "scripts"))
+
+		sandbox = AppDomain.createDomain("Sandbox", evidence, setup)
+
+		engine = IronPython.Hosting.Python.createEngine(sandbox)
+		scope = engine.createScope
+		
+		script = StreamReader('scripts/base.py').readToEnd
+		scriptSource = engine.createScriptSourceFromString(script)
+		scriptSource.execute(scope)
 
 		while true
 			msg = server.readMessage
