@@ -2,6 +2,7 @@
 
 use Lidgren.Network
 use System.Security
+use System.Threading
 
 assembly
 	has AllowPartiallyTrustedCallers
@@ -14,14 +15,8 @@ class SherlockServer
 		server.start
 		state = ServerState(server)
 
-		script = ScriptEnv()
-		script.executeFile('scripts/base.py')
-		script.executeString("print 'pre-poop'")
-		script.executeString("Item().poop()")
-		script.executeString("Item().poop()")
-		script.executeString("print 'post-poop'")
-
 		while true
+			state.tick
 			msg = server.readMessage
 			if not msg
 				continue
@@ -39,4 +34,6 @@ class SherlockServer
 					m = Message.readRequestFromWire(msg to !)
 					m.execute(msg.senderConnection to !, state)
 			server.recycle(msg)
+			Thread.sleep(50)
+
 

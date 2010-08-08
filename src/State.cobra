@@ -25,9 +25,12 @@ class ServerState inherits State
 	var _server as NetServer
 	# entity ID -> Connection
 	var _connections = Dictionary<of int, NetConnection>()
+	var _scriptEnv as ScriptEnv
 
 	cue init(server as NetServer)
 		base.init
+		_scriptEnv = ScriptEnv()
+		_scriptEnv.executeFile('scripts/ai.py')
 		_server = server
 		.addEntity(Entity(Point(1, 1), .getNewId, 'data/man.png'))
 		.addEntity(Entity(Point(-1, -1), .getNewId, 'data/man.png'))
@@ -66,4 +69,11 @@ class ServerState inherits State
 			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
 				msg = Message.writeToWire(MoveMessage(id, src, dest), _server)
 				_server.sendMessage(msg, c, NetDeliveryMethod.ReliableOrdered, 0)
-
+	
+	def tick
+		for id, e in .entities
+			if not _connections.containsKey(id)
+				# No player, so AI it up!
+				dx = _scriptEnv.eval<of int>('getMoveX()')
+				dy = _scriptEnv.eval<of int>('getMoveY()')
+				.moveEntity(id, e.pos, Point(e.pos.x + dx, e.pos.y + dy))
