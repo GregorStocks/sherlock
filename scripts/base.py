@@ -10,4 +10,3 @@ class Item(Entity):
 	def poop(self):
 		print "poop"
 
-Item().poop()

@@ -35,6 +35,10 @@ class SherlockServer
 		
 		scriptSource = engine.createScriptSourceFromFile('scripts/base.py')
 		scriptSource.execute(scope)
+		print "OK"
+		s = engine.createScriptSourceFromString("Item().poop()")
+		s.execute(scope)
+		s.execute(scope)
 
 		while true
 			msg = server.readMessage
