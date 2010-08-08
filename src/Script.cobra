@@ -35,12 +35,8 @@ class Script
 	def executeFile(filename as String)
 		test
 			script = Script('C:/users/me/code/sherlock/test/scripts')
-			script.executeFile('C:/users/me/code/sherlock/test/scripts/nop.py')
-			try
-				# script.executeFile('scripts/base.py')
-				assert false, 'should have gotten an exception when executing non-test script'
-			catch
-				pass
+			script.executeFile('test/scripts/nop.py')
+			expect SecurityException, script.executeFile('scripts/base.py')
 		# Func<int, bool> IsOdd = scope.GetVariable<Func<int, bool>>('isodd');
 		body
 			_engine.createScriptSourceFromFile(filename).execute(_scope)
@@ -48,3 +44,8 @@ class Script
 	def executeString(str as String)
 		_engine.createScriptSourceFromString(str).execute(_scope)
 		
+	def getVariable<of T>(name as String) as T
+		return _scope.getVariable<of T>(name)
+
+	#def getFunc<of T>(name as String) as Func<of T>
+		#return .getVariable<of Func<of T>>(name)
