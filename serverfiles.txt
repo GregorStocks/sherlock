@@ -1,4 +1,4 @@
-src/SherlockServer.cobra
+src/Server.cobra
 src/Message.cobra
 src/Util.cobra
 src/Entity.cobra

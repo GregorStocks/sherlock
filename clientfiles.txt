@@ -1,4 +1,4 @@
-src/SherlockClient.cobra
+src/Client.cobra
 src/Message.cobra
 src/Util.cobra
 src/Entity.cobra
