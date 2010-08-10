@@ -11,10 +11,10 @@ server:
 	cobra -c -files:serverfiles.txt -out:bin/SherlockServer.exe -cs:all -ert -cin
 
 server-test:
-	cobra -test -files:serverfiles.txt -cs:all -ert -cin
+	cobra -test -files:serverfiles.txt -ert
 
 client-test:
-	cobra -test -files:clientfiles.txt -cs:all -ert -cin
+	cobra -test -files:clientfiles.txt -ert
 
 clean:
 	rm bin/*.exe

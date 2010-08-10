@@ -1,6 +1,6 @@
 use Lidgren.Network
 
-class State is abstract
+class State inherits MarshalByRefObject is abstract
 	# ID -> Entity mapping
 	pro entities from var as IDictionary<of int, Entity>
 
@@ -30,10 +30,11 @@ class ServerState inherits State
 	cue init(server as NetServer)
 		base.init
 		_scriptEnv = ScriptEnv()
-		_scriptEnv.executeFile('scripts/ai.py')
 		_server = server
-		.addEntity(Entity(Point(1, 1), .getNewId, 'data/man.png'))
-		.addEntity(Entity(Point(-1, -1), .getNewId, 'data/man.png'))
+		_scriptEnv.setVariable('ServerState', this)
+		_scriptEnv.executeFile('scripts/map.py')
+		_scriptEnv.eval('map(ServerState)')
+		_scriptEnv.executeFile('scripts/ai.py')
 
 	def addEntity(e as Entity, c as NetConnection)
 		if e.id == 0
@@ -77,3 +78,6 @@ class ServerState inherits State
 				dx = _scriptEnv.eval<of int>('getMoveX()')
 				dy = _scriptEnv.eval<of int>('getMoveY()')
 				.moveEntity(id, e.pos, Point(e.pos.x + dx, e.pos.y + dy))
+	
+	def makeEntity(x as int, y as int, icon as String)
+		.addEntity(Entity(Point(x, y), .getNewId, icon))

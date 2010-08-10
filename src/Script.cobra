@@ -27,7 +27,7 @@ class ScriptEnv
 		perms = PermissionSet(PermissionState.None)
 		perms.addPermission(SecurityPermission(SecurityPermissionFlag(Execution, _
 		                                                              SerializationFormatter)))
-		perms.addPermission(FileIOPermission(FileIOPermissionAccess.Read, _
+		perms.addPermission(FileIOPermission(FileIOPermissionAccess(Read, PathDiscovery), _
 		                                     Path.getFullPath(scriptDir)))
 
 		sandbox = AppDomain.createDomain('Sandbox', evidence, setup, perms)
@@ -38,6 +38,8 @@ class ScriptEnv
 		runtime = _engine.runtime
 		runtime.loadAssembly(String.getType.assembly)
 		runtime.loadAssembly(Uri.getType.assembly)
+
+		.eval<of Object>("import sys; sys.path.append('scripts')")
 	
 	class Five has Serializable
 		def getFive as int
@@ -70,8 +72,9 @@ class ScriptEnv
 		"""Returns the variable with the given name in the script's scope."""
 		return _scope.getVariable<of T>(name)
 
-	def eval<of T>(name as String) as T
-		"""Calls the function. No args allowed!!!"""
-		return _engine.execute<of T>(name, _scope)
+	def eval<of T>(cmd as String) as T
+		return _engine.execute<of T>(cmd, _scope)
 
+	def eval(cmd as String)
+		_engine.execute(cmd, _scope)
 

@@ -1,11 +1,17 @@
-z = 0
+import base
+
+from System import Random
+
+randgen = Random()
 
 def getMoveX():
-	global z
-	z += 1
-	if z % 999 == 0:
-		return 1
+	global randgen
+	if randgen.Next(1000) == 0:
+		return randgen.Next(-1, 1)
 	return 0
 
 def getMoveY():
+	global randgen
+	if randgen.Next(1000) == 0:
+		return randgen.Next(-1, 1)
 	return 0
