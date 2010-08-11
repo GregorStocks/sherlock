@@ -9,3 +9,4 @@ src/ClientState.cobra
 src/Point.cobra
 src/Id.cobra
 src/Script.cobra
+src/PythonServerStateInterface.cobra

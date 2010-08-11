@@ -23,6 +23,5 @@ class AddMessage implements IRequest, ICommand has MessageType(1)
 		s.addEntity(.e, c)
 
 	def execute(c as NetConnection, s as ClientState)
-		print 'Got an AddMessage, .e is [.e]'
 		assert .e
 		s.addEntity(.e to !)

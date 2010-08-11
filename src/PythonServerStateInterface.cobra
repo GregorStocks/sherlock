@@ -1,0 +1,23 @@
+class PythonServerStateInterface inherits MarshalByRefObject
+	var _s as ServerState
+
+	cue init(s as ServerState)
+		base.init
+		_s = s
+
+	def makeEntity(x as int, y as int, icon as String) as int
+		print 'makinnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn'
+		id = _s.getNewId
+		print 'ID IS [id]'
+		_s.addEntity(Entity(Point(x, y), id, icon))
+		return id
+	
+	def moveEntity(id as int, x as int, y as int)
+		_s.moveEntity(id, _s.entities[id].pos, Point(x, y))
+	
+	def entityHasPlayer(id as int) as bool
+		return _s.connections.containsKey(id)
+
+	def getEntityPosition(id as int) as List<of int>
+		pos = _s.entities[id].pos
+		return [pos.x, pos.y]

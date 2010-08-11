@@ -5,10 +5,10 @@ all: client server
 # Use -ert to avoid security issues, since Cobra.Lang.dll doesn't allow partially trusted callers.
 # Compiling our own is probably not a good solution in the long term.
 client:
-	cobra -c -files:clientfiles.txt -out:bin/SherlockClient.exe -cs:all -ert -cin
+	cobra -c -files:clientfiles.txt -out:bin/SherlockClient.exe -cs:all -ert -cin -debug
 
 server:
-	cobra -c -files:serverfiles.txt -out:bin/SherlockServer.exe -cs:all -ert -cin
+	cobra -c -files:serverfiles.txt -out:bin/SherlockServer.exe -cs:all -ert -cin -debug
 
 server-test:
 	cobra -test -files:serverfiles.txt -ert

@@ -24,3 +24,6 @@ class Entity
 		.pos.write(m)
 		Util.writeId(m, .id)
 		Util.writeString(m, .spriteloc)
+	
+	def toString as String is override
+		return 'Entity #[.id] at [.pos], sprite [.spriteloc]'

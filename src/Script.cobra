@@ -3,6 +3,7 @@
 @ref "bin/Microsoft.Scripting.Core.dll"
 
 use IronPython
+use Microsoft.Scripting
 use Microsoft.Scripting.Hosting
 use System.Security
 use System.Security.Permissions
@@ -39,27 +40,23 @@ class ScriptEnv
 		runtime.loadAssembly(String.getType.assembly)
 		runtime.loadAssembly(Uri.getType.assembly)
 
-		.eval<of Object>("import sys; sys.path.append('scripts')")
+		.eval<of Object>("import sys; sys.path.append('[scriptDir]')")
 	
 	class Five has Serializable
 		def getFive as int
 			return 5
 
-	def executeFile(filename as String)
-		"""Loads the given file and executes it."""
+	def importModule(name as String)
+		"""Imports the given module"""
 		test
 			script = ScriptEnv('test/scripts')
-			script.executeFile('test/scripts/nop.py')
-			expect SecurityException, script.executeFile('scripts/base.py')
+			script.importModule('nop')
+			# expect SecurityException, script.importModule('../base')
 			script.setVariable('c', Five())
 			assert script.eval<of int>("c.GetFive()") == 5
 		body
-			_engine.createScriptSourceFromFile(filename).execute(_scope)
+			.eval("import [name]")
 
-	def executeString(str as String)
-		"""Executes the given string."""
-		_engine.createScriptSourceFromString(str).execute(_scope)
-		
 	def setVariable(name as String, object as Object)
 		"""
 		Adds the given object to the script's scope with the given name. Remember that Cobra
@@ -73,8 +70,13 @@ class ScriptEnv
 		return _scope.getVariable<of T>(name)
 
 	def eval<of T>(cmd as String) as T
-		return _engine.execute<of T>(cmd, _scope)
+		try
+			return _engine.execute<of T>(cmd, _scope)
+		catch e as SyntaxErrorException
+			print "Error at [e.line],[e.column] of [e.sourcePath]"
+			print "Source was:\n[e.sourceCode]"
+			throw e
 
 	def eval(cmd as String)
-		_engine.execute(cmd, _scope)
+		.eval<of Object>(cmd)
 

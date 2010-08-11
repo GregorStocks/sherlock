@@ -4,13 +4,7 @@ from System import Random
 
 randgen = Random()
 
-def getMoveX():
-	global randgen
-	if randgen.Next(1000) == 0:
-		return randgen.Next(-1, 1)
-	return 0
-
-def getMoveY():
+def get_move():
 	global randgen
 	if randgen.Next(1000) == 0:
 		return randgen.Next(-1, 1)

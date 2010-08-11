@@ -1,6 +1,6 @@
 use Lidgren.Network
 
-class State inherits MarshalByRefObject is abstract
+class State is abstract
 	# ID -> Entity mapping
 	pro entities from var as IDictionary<of int, Entity>
 
@@ -24,23 +24,25 @@ class ServerState inherits State
 		return _idCounter
 	var _server as NetServer
 	# entity ID -> Connection
-	var _connections = Dictionary<of int, NetConnection>()
-	var _scriptEnv as ScriptEnv
+	var connections = Dictionary<of int, NetConnection>()
+	var scriptEnv as ScriptEnv
 
 	cue init(server as NetServer)
 		base.init
-		_scriptEnv = ScriptEnv()
+		.scriptEnv = ScriptEnv()
 		_server = server
-		_scriptEnv.setVariable('ServerState', this)
-		_scriptEnv.executeFile('scripts/map.py')
-		_scriptEnv.eval('map(ServerState)')
-		_scriptEnv.executeFile('scripts/ai.py')
+		.scriptEnv.setVariable('CobraServerState', PythonServerStateInterface(this))
+		.scriptEnv.importModule('base')
+		.scriptEnv.eval('ServerState = base.State(CobraServerState)')
+		.scriptEnv.importModule('map')
+		.scriptEnv.importModule('tick')
+		.scriptEnv.importModule('ai')
+		.scriptEnv.eval('map.map(ServerState)')
 
 	def addEntity(e as Entity, c as NetConnection)
 		if e.id == 0
 			e.id = .getNewId
-
-		_connections.add(e.id, c)
+		.connections.add(e.id, c)
 
 		# tell new guy about everyone
 		for entity in .entities.values
@@ -51,8 +53,7 @@ class ServerState inherits State
 		base.addEntity(e)
 
 		# tell everyone about new guy
-		for i, c in _connections
-			print i
+		for i, c in .connections
 			entity = .entities[i]
 			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
 				msg = Message.writeToWire(AddMessage(e), _server)
@@ -65,19 +66,12 @@ class ServerState inherits State
 	def moveEntity(id as int, src as Point?, dest as Point) is override
 		base.moveEntity(id, src, dest)
 		e = .entities[id]
-		for i, c in _connections
+		for i, c in .connections
 			entity = .entities[i]
 			if Math.abs(entity.pos.x - e.pos.x) < 5 and Math.abs(entity.pos.y - e.pos.y) < 5
 				msg = Message.writeToWire(MoveMessage(id, src, dest), _server)
 				_server.sendMessage(msg, c, NetDeliveryMethod.ReliableOrdered, 0)
-	
+
 	def tick
-		for id, e in .entities
-			if not _connections.containsKey(id)
-				# No player, so AI it up!
-				dx = _scriptEnv.eval<of int>('getMoveX()')
-				dy = _scriptEnv.eval<of int>('getMoveY()')
-				.moveEntity(id, e.pos, Point(e.pos.x + dx, e.pos.y + dy))
-	
-	def makeEntity(x as int, y as int, icon as String)
-		.addEntity(Entity(Point(x, y), .getNewId, icon))
+		.scriptEnv.eval('tick.tick(ServerState)')
+

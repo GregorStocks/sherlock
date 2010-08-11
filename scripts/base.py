@@ -10,3 +10,13 @@ class Item(Entity):
 	def poop(self):
 		print "poop"
 
+class State(object):
+	def __init__(self, state):
+		self.state = state
+		self.ids = []
+	
+	def MakeEntity(self, x, y, icon):
+		print 'makin?????'
+		id = self.state.MakeEntity(x, y, icon)
+		print 'got [id]'
+		self.ids.append(id)
