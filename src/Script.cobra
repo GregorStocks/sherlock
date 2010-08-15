@@ -47,13 +47,15 @@ class ScriptEnv
 			return 5
 
 	def importModule(name as String)
-		"""Imports the given module"""
+		"""Imports the given module."""
 		test
-			script = ScriptEnv('test/scripts')
+			script = ScriptEnv('test/scripts/good')
 			script.importModule('nop')
-			# expect SecurityException, script.importModule('../base')
 			script.setVariable('c', Five())
 			assert script.eval<of int>("c.GetFive()") == 5
+
+			script = ScriptEnv('test/scripts/bad')
+			expect SecurityException, script.importModule('bad_read')
 		body
 			.eval("import [name]")
 

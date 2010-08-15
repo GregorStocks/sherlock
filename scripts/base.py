@@ -20,3 +20,6 @@ class State(object):
 		id = self.state.MakeEntity(x, y, icon)
 		print 'got [id]'
 		self.ids.append(id)
+
+	def MoveEntity(self, id, x, y):
+		self.state.MoveEntity(id, x, y)
